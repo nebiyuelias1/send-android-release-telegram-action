@@ -2,6 +2,10 @@ name: 'Send Android Release to Telegram'
 description: 'Send APK or AAB files to a Telegram chat/channel'
 author: 'Nebiyu Elias'
 inputs:
+  build_type:
+    description: 'Type of build artifact (apk or aab)' Accepted values: apk, aab. Note: ABB is recommended for Google play submissions.
+    required: false
+    default: 'apk'
   keystore_base64:
     description: "Base64-encoded Android keystore"
     required: true
@@ -21,7 +25,7 @@ inputs:
     description: "Telegram Bot API Token"
     required: true
   message:
-    description: "Message to send"
+    description: "Message to send with the aritfact"
     required: false
 runs:
   using: 'docker'

@@ -11,6 +11,7 @@ it to a Telegram chat or channel via a bot.
 - 📤 Sends the resulting `.apk` file to a Telegram chat, group, or channel
 - 💬 Optional message support with Markdown formatting
 - 🔐 Uses Telegram Bot API
+- 🛠️ Includes bundletool for advanced AAB processing (e.g., validation or APK extraction)
 
 ---
 
@@ -25,6 +26,7 @@ it to a Telegram chat or channel via a bot.
 | `key_alias` | The key alias  | ✅ Yes   | -   |
 | `key_password` | The key password  | ✅ Yes   | -   |
 | `message` | Optional message to send with APK  | ❌ No    | `🚀 New Android Release`   |
+| `build_type` |Type of build artifact (apk or aab). Accepted values: apk, aab. Note: AAB is recommended for Google Play submissions. | ❌ No | apk |
 
 ---
 
@@ -64,7 +66,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build & Send to Telegram
-        uses: nebiyuelias1/send-android-release-telegram-action@v1.0.7
+        uses: nebiyuelias1/send-android-release-telegram-action@v1.1.0
         with:
           keystore_base64: ${{ secrets.KEYSTORE_BASE64 }}
           keystore_password: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -72,12 +74,17 @@ jobs:
           key_password: ${{ secrets.KEY_PASSWORD }}
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "🚀 New Android release by ${{ github.actor }}!"
+          message: "🚀 New Android release by ${{ github.actor }}!
+          build_type:"aab" #Optional;set to "apk" or "aab" (defaults to "apk")
+          
 ```
 
 ## ✍️ Adding Signing Config to Your Gradle File
 
 To build and sign your Android app, you need to configure the signing settings in your `build.gradle` file. Below are the steps for both **Groovy DSL** and **Kotlin DSL** formats.
+
+"Note: For AAB builds (build_type: aab), ensure your project supports the bundleRelease task. This may require enabling the Android App Bundle in your build.gradle (e.g., android.bundle settings) and verifying compatibility with the Android Gradle Plugin. See Google's documentation for details."
+
 
 ### For Groovy DSL (`build.gradle`):
 ```gradle
@@ -166,6 +173,27 @@ To build and sign your Android app, you need a keystore file. Follow these steps
    > Notes:
 Keep your keystore file and passwords secure. Do not share them publicly.
 Use the same alias and passwords when configuring the GitHub secrets.
+
+##  🛠️ Advanced AAB Processing
+
+The action includes bundletool (version 1.17.1) in the Docker image, which can be used for advanced AAB processing, such as validating the AAB file or extracting APKs for testing. While the action currently sends the AAB file directly to Telegram, you can extend the entrypoint.sh script to use bundletool for additional tasks. See the bundletool documentation for details.
+
+## 🛑 Troubleshooting
+
+Here are common issues and solutions when using this action:
+
+-"Artifact not found" error:
+    -Ensure your Gradle file is configured correctly for assembleRelease (APK) or bundleRelease (AAB).
+    -For AAB builds, verify that the bundleRelease task is supported in your project (e.g., Android Gradle Plugin version 3.2.0 or higher).
+    -Check the GitHub Actions logs for Gradle build errors.
+-Telegram upload fails:
+    -Verify that TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are correct.
+    -Ensure the file size is within Telegram’s limits (50MB for bots, 2GB for premium).
+    -Check the Telegram Bot API response in the GitHub Actions logs for error details.
+-Keystore errors:
+    -Confirm that KEYSTORE_BASE64 is a valid Base64-encoded string of your keystore file.
+    -Ensure KEYSTORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD match the keystore’s configuration.
+If you encounter issues, contact nebiyuelias1@gmail.com or eyureaper@gmail.com
 
 ## 📝 License
 
